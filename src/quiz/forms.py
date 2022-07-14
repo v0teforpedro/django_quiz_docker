@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from quiz.models import Choice
+from .models import Choice
 
 
 class QuestionInlineFormSet(forms.BaseInlineFormSet):
