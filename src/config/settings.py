@@ -16,8 +16,8 @@ from celery.schedules import crontab
 
 from dotenv import load_dotenv
 
-# from quiz.tasks import simple_task
-# from quiz.tasks import send_email_report
+from quiz.tasks import simple_task
+from quiz.tasks import send_email_report
 
 load_dotenv()
 
