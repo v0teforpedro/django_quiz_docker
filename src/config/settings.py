@@ -9,10 +9,15 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-import os
+from os import getenv
 from pathlib import Path
 
+from celery.schedules import crontab
+
 from dotenv import load_dotenv
+
+from quiz.tasks import simple_task
+from quiz.tasks import send_email_report
 
 load_dotenv()
 
@@ -24,12 +29,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG') in ['True', 'TRUE', 'true', 'On', 'ON', 'on', '1']
+DEBUG = getenv('DEBUG') in ['True', 'TRUE', 'true', 'On', 'ON', 'on', '1']
 
-ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS').split()]
+ALLOWED_HOSTS = [host.strip() for host in getenv('ALLOWED_HOSTS').split()]
 
 
 # Application definition
@@ -47,6 +52,7 @@ INSTALLED_APPS = [
 
     'accounts.apps.AccountsConfig',
     'quiz.apps.QuizConfig',
+    'task.apps.TaskConfig',
 ]
 
 MIDDLEWARE = [
@@ -85,8 +91,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'HOST': getenv('POSTGRES_HOST'),
+        'PORT': getenv('POSTGRES_PORT'),
+        'USER': getenv('POSTGRES_USER'),
+        'PASSWORD': getenv('POSTGRES_PASSWORD'),
+        'NAME': getenv('POSTGRES_DB'),
     }
 }
 
@@ -148,3 +158,21 @@ CKEDITOR_UPLOAD_PATH = 'uploads/'
 
 # to show django which user model to use
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+SERVER_EMAIL = "noreply@test.com"
+ADMINS = [("admin", "admin@test.com"), ]
+
+CELERY_BROKER_URL = getenv("CELERY_BROKER")
+CELERY_RESULT_BACKEND = getenv("CELERY_BACKEND")
+
+CELERY_BEAT_SCHEDULE = {
+    "simple_task": {
+        "task": "quiz.tasks.simple_task",
+        "schedule": crontab(minute="*/1"),
+    },
+    "send_email_report": {
+        "task": "quiz.tasks.send_email_report",
+        "schedule": crontab(minute="*/2"),
+    },
+}
