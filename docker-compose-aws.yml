@@ -5,7 +5,7 @@ services:
     build: .
     image: v0teforpedro/web_service:latest
     container_name: web_service
-    command: gunicorn app.wsgi:application --workers 4 --bind 0.0.0.0:8090
+    command: gunicorn config.wsgi:application --workers 4 --bind 0.0.0.0:8090
     volumes:
       - static_volume:/opt/src/static
       - media_volume:/opt/src/media
